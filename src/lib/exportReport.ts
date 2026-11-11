@@ -20,7 +20,7 @@ export function downloadTextFile(
 export function exportEndpointsAsJson(endpoints: EndpointConfig[]) {
   const stamp = new Date().toISOString().slice(0, 10);
   downloadTextFile(
-    `fluxpulse-endpoints-${stamp}.json`,
+    `pulse-endpoints-${stamp}.json`,
     JSON.stringify(endpoints, null, 2),
   );
 }
@@ -32,7 +32,7 @@ export function exportTaskReportAsJson(task: TaskSnapshot) {
     "_",
   );
   downloadTextFile(
-    `fluxpulse-report-${safeName}-${stamp}.json`,
+    `pulse-report-${safeName}-${stamp}.json`,
     JSON.stringify(task, null, 2),
   );
 }
@@ -92,7 +92,7 @@ export function exportTaskLogsAsCsv(task: TaskSnapshot) {
   const csvWithBom = `\uFEFF${lines.join("\r\n")}`;
   const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
   downloadTextFile(
-    `fluxpulse-logs-${stamp}.csv`,
+    `pulse-logs-${stamp}.csv`,
     csvWithBom,
     "text/csv;charset=utf-8",
   );

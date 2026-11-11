@@ -16,7 +16,7 @@ impl Default for AppSettings {
         Self {
             default_concurrency: 16,
             default_timeout_ms: 10_000,
-            default_user_agent: "FluxPulse-Desktop/0.1.0".to_string(),
+            default_user_agent: "Pulse/0.1.0".to_string(),
             global_proxy_url: String::new(),
             max_history_records: 50,
             theme: "dark".to_string(),

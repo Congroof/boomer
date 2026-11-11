@@ -29,7 +29,7 @@ export const useAppStore = create<AppStoreState>((set, get) => ({
   settings: {
     defaultConcurrency: 16,
     defaultTimeoutMs: 10000,
-    defaultUserAgent: "FluxPulse-Desktop/0.1.0",
+    defaultUserAgent: "Pulse/0.1.0",
     globalProxyUrl: "",
     maxHistoryRecords: 50,
     theme: "dark",

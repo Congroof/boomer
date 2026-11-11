@@ -22,7 +22,7 @@ pub fn run() {
             let data_dir = app
                 .path()
                 .app_data_dir()
-                .unwrap_or_else(|_| std::env::temp_dir().join("com.fluxpulse.desktop"));
+                .unwrap_or_else(|_| std::env::temp_dir().join("com.pulse.desktop"));
 
             let store = Arc::new(
                 LocalStore::new(data_dir).expect("Failed to initialize local data directory"),

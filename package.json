@@ -1,5 +1,5 @@
 {
-  "name": "fluxpulse-api-runner",
+  "name": "pulse",
   "private": true,
   "version": "0.1.0",
   "description": "High-performance cross-platform HTTP API concurrency runner & benchmark client powered by Tauri v2, Rust Tokio, React, Tailwind CSS, and shadcn/ui",

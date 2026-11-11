@@ -19,10 +19,10 @@ interface CurlImportDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-const SAMPLE_CURL = `curl -X POST 'https://httpbin.org/post?channel=pc_client' \\
+const SAMPLE_CURL = `curl -X POST 'https://httpbin.org/post?source=web' \\
   -H 'Content-Type: application/json' \\
   -H 'X-Request-Id: {{$uuid}}' \\
-  --data-raw '{"phone": "{{phone}}", "timestamp": {{$timestamp}}}'`;
+  --data-raw '{"userId": "{{userId}}", "timestamp": {{$timestamp}}}'`;
 
 export function CurlImportDialog({
   open,
@@ -35,7 +35,7 @@ export function CurlImportDialog({
     try {
       const parsed = parseCurlToEndpoint(curlText);
       await upsertFromCurl([parsed], false);
-      toast.success(`已成功解析并录入接口：${parsed.name}`);
+      toast.success(`已导入接口：${parsed.name}`);
       setCurlText("");
       onOpenChange(false);
     } catch (err) {
@@ -49,34 +49,30 @@ export function CurlImportDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Terminal className="h-4 w-4 text-primary" />
-            从 cURL 命令快速录入接口
+            导入 cURL
           </DialogTitle>
           <DialogDescription>
-            支持直接粘贴浏览器 DevTools（Copy as cURL）或接口文档中的命令，系统将自动提取请求方法、Query、Headers、Body 及{" "}
-            <code className="rounded bg-muted px-1 font-mono text-primary">
-              {"{{变量}}"}
-            </code>
-            。
+            粘贴 cURL 命令，自动提取请求方法、Query、Headers 与 Body。
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-xs font-medium text-muted-foreground">
-              cURL 命令内容
+              命令内容
             </span>
             <button
               type="button"
               onClick={() => setCurlText(SAMPLE_CURL)}
               className="text-xs text-primary hover:underline"
             >
-              填入示例 cURL
+              填入示例
             </button>
           </div>
           <Textarea
             value={curlText}
             onChange={(e) => setCurlText(e.target.value)}
-            placeholder="curl -X POST 'https://api.example.com/v1/send' -H 'Content-Type: application/json' -d '{...}'"
+            placeholder="curl -X POST 'https://api.example.com/v1/items' -H 'Content-Type: application/json' -d '{...}'"
             className="min-h-[180px] font-mono text-xs leading-relaxed"
           />
         </div>
@@ -89,7 +85,7 @@ export function CurlImportDialog({
             onClick={() => void handleParseAndImport()}
             disabled={!curlText.trim()}
           >
-            解析并保存接口
+            解析并导入
           </Button>
         </DialogFooter>
       </DialogContent>

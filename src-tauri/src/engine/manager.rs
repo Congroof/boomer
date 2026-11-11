@@ -137,7 +137,7 @@ mod tests {
     async fn test_concurrent_execution_pause_resume_and_stats() {
         let port = start_local_mock_server().await.unwrap();
         let temp_dir =
-            std::env::temp_dir().join(format!("fluxpulse_test_{}", Uuid::new_v4()));
+            std::env::temp_dir().join(format!("pulse_test_{}", Uuid::new_v4()));
         let store = Arc::new(LocalStore::new(temp_dir.clone()).unwrap());
         let manager = TaskManager::new(store.clone(), port);
 

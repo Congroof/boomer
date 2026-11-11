@@ -35,32 +35,22 @@ export function createEmptyEndpoint(group = "默认分组"): EndpointConfig {
   const now = new Date().toISOString();
   return {
     id: "",
-    name: "新建 HTTP 接口",
+    name: "未命名接口",
     group,
     tags: [],
     enabled: true,
     description: "",
-    method: "POST",
-    url: "https://httpbin.org/post",
+    method: "GET",
+    url: "",
     queryParams: [],
-    headers: [
-      createKeyValueItem("Accept", "application/json", "默认接收 JSON 响应"),
-    ],
+    headers: [createKeyValueItem("Accept", "application/json")],
     body: {
-      bodyType: "json",
-      rawContent: '{\n  "phone": "{{phone}}",\n  "traceId": "{{$uuid}}"\n}',
+      bodyType: "none",
+      rawContent: "",
       rawContentType: "text/plain; charset=utf-8",
       formItems: [],
     },
-    variables: [
-      {
-        key: "phone",
-        label: "手机号",
-        defaultValue: "13800138000",
-        required: true,
-        description: "自定义注入参数",
-      },
-    ],
+    variables: [],
     assertions: {
       statusCodes: "200-299",
       bodyContains: "",
@@ -68,7 +58,7 @@ export function createEmptyEndpoint(group = "默认分组"): EndpointConfig {
       jsonAssertions: [],
       maxLatencyMs: null,
     },
-    timeoutMs: 10000,
+    timeoutMs: null,
     followRedirects: true,
     verifySsl: true,
     createdAt: now,

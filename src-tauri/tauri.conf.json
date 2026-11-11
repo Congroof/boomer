@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "FluxPulse",
+  "productName": "Pulse",
   "version": "0.1.0",
-  "identifier": "com.fluxpulse.desktop",
+  "identifier": "com.pulse.desktop",
   "build": {
     "beforeDevCommand": "pnpm dev",
     "devUrl": "http://localhost:1420",
@@ -13,7 +13,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "FluxPulse — 高性能接口并发执行客户端",
+        "title": "Pulse",
         "width": 1320,
         "height": 840,
         "minWidth": 1060,

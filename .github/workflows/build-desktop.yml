@@ -65,7 +65,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tagName: v__VERSION__
-          releaseName: "FluxPulse v__VERSION__"
+          releaseName: "Pulse v__VERSION__"
           releaseBody: "Cross-platform PC builds for macOS (.dmg) and Windows (.msi / setup.exe)."
           releaseDraft: true
           prerelease: false

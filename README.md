@@ -1,4 +1,4 @@
-# FluxPulse — 高性能跨平台接口并发执行客户端
+# Pulse
 
 基于 **React 18 + TypeScript + Tailwind CSS + shadcn/ui + Tauri v2 + Rust (Tokio + Reqwest)** 构建的纯本地 PC 桌面客户端，原生支持 **macOS** 与 **Windows**。无需任何后端服务器，所有接口配置与压测统计数据均安全持久化在本地操作系统应用目录。
 

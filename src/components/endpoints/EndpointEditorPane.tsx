@@ -8,7 +8,6 @@ import {
   Plus,
   Rocket,
   Save,
-  ShieldCheck,
   Sparkles,
   Trash2,
   XCircle,
@@ -50,9 +49,9 @@ const HTTP_METHODS: HttpMethod[] = [
 const HEADER_PRESETS = [
   { label: "JSON", key: "Content-Type", value: "application/json" },
   { label: "Bearer Token", key: "Authorization", value: "Bearer {{token}}" },
-  { label: "Trace ID", key: "X-Request-Id", value: "{{$uuid}}" },
+  { label: "Request ID", key: "X-Request-Id", value: "{{$uuid}}" },
   {
-    label: "Chrome UA",
+    label: "User-Agent",
     key: "User-Agent",
     value:
       "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/131.0.0.0 Safari/537.36",
@@ -94,23 +93,15 @@ export function EndpointEditorPane() {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">
         <div className="rounded-2xl bg-primary/10 p-4 text-primary">
-          <Braces className="h-8 w-8" />
+          <Braces className="h-7 w-7" />
         </div>
-        <h3 className="text-base font-semibold">选择或录入一个 HTTP 接口</h3>
-        <p className="max-w-md text-xs text-muted-foreground leading-relaxed">
-          支持 GET / POST / PUT / DELETE 等全部标准方法，可在 URL、Query、Headers、Body 任意位置使用{" "}
-          <code className="rounded bg-muted px-1 font-mono text-primary">
-            {"{{phone}}"}
-          </code>{" "}
-          自定义注入变量或{" "}
-          <code className="rounded bg-muted px-1 font-mono text-primary">
-            {"{{$uuid}}"}
-          </code>{" "}
-          动态函数。
+        <h3 className="text-sm font-semibold">选择或新建接口</h3>
+        <p className="max-w-sm text-xs text-muted-foreground leading-relaxed">
+          从左侧列表选择已有接口进行编辑，或创建一个新的请求配置。
         </p>
         <Button size="sm" onClick={() => startNewEndpoint()} className="gap-1.5">
           <Plus className="h-4 w-4" />
-          新建第一个接口
+          新建接口
         </Button>
       </div>
     );
@@ -119,7 +110,7 @@ export function EndpointEditorPane() {
   const handleSave = async () => {
     try {
       const saved = await saveDraft();
-      toast.success(`已保存接口：${saved.name}`);
+      toast.success(`已保存：${saved.name}`);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : String(err));
     }
@@ -130,9 +121,9 @@ export function EndpointEditorPane() {
     try {
       const res = await testCurrentDraft(testParams);
       if (res.success) {
-        toast.success(`调试请求成功 (${res.statusCode} · ${res.latencyMs}ms)`);
+        toast.success(`请求成功 (${res.statusCode} · ${res.latencyMs}ms)`);
       } else {
-        toast.warning(`请求未通过断言：${res.failureReason ?? res.statusText}`);
+        toast.warning(`未通过断言：${res.failureReason ?? res.statusText}`);
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : String(err));
@@ -152,9 +143,9 @@ export function EndpointEditorPane() {
   const handleCopyToken = async (token: string) => {
     try {
       await navigator.clipboard.writeText(token);
-      toast.success(`已复制占位符 ${token}，可粘贴至 URL / Header / Body`);
+      toast.success(`已复制 ${token}`);
     } catch {
-      toast.info(`占位符: ${token}`);
+      toast.info(token);
     }
   };
 
@@ -165,50 +156,52 @@ export function EndpointEditorPane() {
         d.body.rawContent = pretty;
         return d;
       });
-      toast.success("JSON 已格式化");
+      toast.success("已格式化");
     } catch {
-      toast.error("当前 JSON 语法无法直接格式化（若含未加引号的模板变量请检查引号）");
+      toast.error("JSON 语法有误，无法格式化");
     }
   };
 
   return (
-    <div className="flex h-full min-w-0 flex-1 flex-col">
+    <div className="flex h-full min-w-0 flex-1 flex-col overflow-hidden">
       {/* Top Meta Toolbar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-card/50 px-5 py-3">
-        <div className="flex min-w-0 flex-1 items-center gap-2.5">
+      <div className="flex items-center justify-between gap-3 border-b border-border bg-card/50 px-5 py-3">
+        <div className="flex min-w-0 flex-1 items-center gap-2">
           <Input
             value={draft.name}
+            title={draft.name}
             onChange={(e) =>
               updateDraft((d) => {
                 d.name = e.target.value;
                 return d;
               })
             }
-            placeholder="接口名称（如：登录短信下发接口）"
-            className="h-8 max-w-xs font-medium text-xs"
+            placeholder="接口名称"
+            className="h-8 min-w-0 flex-[1.6] text-xs font-medium"
           />
           <Input
             value={draft.group}
+            title={draft.group}
             onChange={(e) =>
               updateDraft((d) => {
                 d.group = e.target.value;
                 return d;
               })
             }
-            placeholder="所属分组"
-            className="h-8 w-40 text-xs"
+            placeholder="分组"
+            className="h-8 min-w-0 max-w-[220px] flex-1 text-xs"
           />
           {isDirty && (
             <Badge
               variant="outline"
-              className="border-amber-500/40 bg-amber-500/10 text-[10px] text-amber-400"
+              className="shrink-0 border-amber-500/40 bg-amber-500/10 text-[10px] text-amber-400"
             >
-              未保存修改
+              未保存
             </Badge>
           )}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2">
           <Button
             variant="outline"
             size="sm"
@@ -216,7 +209,7 @@ export function EndpointEditorPane() {
             onClick={() => setDebugOpen((v) => !v)}
           >
             <FlaskConical className="h-3.5 w-3.5 text-sky-400" />
-            {debugOpen ? "收起调试台" : "单次调试"}
+            {debugOpen ? "收起调试" : "调试"}
           </Button>
           <Button
             variant="secondary"
@@ -225,7 +218,7 @@ export function EndpointEditorPane() {
             onClick={() => void handleLaunchTaskForEndpoint()}
           >
             <Rocket className="h-3.5 w-3.5 text-indigo-400" />
-            并发执行此接口
+            并发运行
           </Button>
           <Button
             size="sm"
@@ -233,7 +226,7 @@ export function EndpointEditorPane() {
             onClick={() => void handleSave()}
           >
             <Save className="h-3.5 w-3.5" />
-            保存接口
+            保存
           </Button>
         </div>
       </div>
@@ -270,7 +263,7 @@ export function EndpointEditorPane() {
                 return d;
               })
             }
-            placeholder="https://api.example.com/v1/endpoint?phone={{phone}}"
+            placeholder="https://api.example.com/v1/resource"
             className="h-9 flex-1 font-mono text-xs"
           />
 
@@ -286,7 +279,7 @@ export function EndpointEditorPane() {
             ) : (
               <Play className="h-3.5 w-3.5 fill-current" />
             )}
-            发送测试
+            发送
           </Button>
         </div>
 
@@ -294,14 +287,14 @@ export function EndpointEditorPane() {
         <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
           <span className="flex items-center gap-1 text-muted-foreground">
             <Sparkles className="h-3 w-3 text-primary" />
-            点击复制动态函数：
+            内置变量：
           </span>
           {BUILTIN_TEMPLATE_TOKENS.map((b) => (
             <button
               key={b.token}
               type="button"
               onClick={() => void handleCopyToken(b.token)}
-              title={`${b.label}（示例: ${b.example}）`}
+              title={`${b.label}（如 ${b.example}）`}
               className="rounded border border-border/70 bg-muted/40 px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground transition hover:border-primary/40 hover:text-primary"
             >
               {b.token}
@@ -311,12 +304,12 @@ export function EndpointEditorPane() {
       </div>
 
       {/* Main Editor Body + Optional Inline Debug Drawer */}
-      <ScrollArea className="flex-1">
-        <div className="space-y-5 p-5">
+      <ScrollArea className="min-w-0 flex-1">
+        <div className="min-w-0 space-y-5 p-5">
           <Tabs defaultValue="variables" className="w-full">
             <TabsList className="grid w-full grid-cols-6">
               <TabsTrigger value="variables" className="text-xs">
-                自定义参数 ({draft.variables.length})
+                变量 ({draft.variables.length})
               </TabsTrigger>
               <TabsTrigger value="query" className="text-xs">
                 Query ({draft.queryParams.length})
@@ -325,31 +318,26 @@ export function EndpointEditorPane() {
                 Headers ({draft.headers.length})
               </TabsTrigger>
               <TabsTrigger value="body" className="text-xs">
-                Body ({draft.body.bodyType})
+                Body
               </TabsTrigger>
               <TabsTrigger value="assertions" className="text-xs">
-                成功断言
+                断言
               </TabsTrigger>
               <TabsTrigger value="advanced" className="text-xs">
-                高级配置
+                高级
               </TabsTrigger>
             </TabsList>
 
             {/* Tab 1: Custom Variables Schema */}
             <TabsContent value="variables" className="mt-4 space-y-3">
-              <div className="flex items-center justify-between rounded-lg border border-primary/20 bg-primary/5 px-3.5 py-2.5 text-xs">
-                <div className="space-y-0.5">
-                  <p className="font-medium text-foreground">
-                    接口自定义注入变量定义（自动识别{" "}
-                    <code className="font-mono text-primary">{"{{变量名}}"}</code>）
-                  </p>
-                  <p className="text-[11px] text-muted-foreground">
-                    在 URL、Query、Headers 或 Body 中输入如{" "}
-                    <code className="font-mono">{"{{phone}}"}</code>、
-                    <code className="font-mono">{"{{userId}}"}</code>{" "}
-                    将自动提取到此处；启动并发任务时将生成对应参数注入表单。
-                  </p>
-                </div>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs text-muted-foreground">
+                  在请求中使用{" "}
+                  <code className="rounded bg-muted px-1 py-0.5 font-mono text-foreground">
+                    {"{{变量名}}"}
+                  </code>{" "}
+                  可自动提取至列表
+                </span>
                 <Button
                   type="button"
                   variant="outline"
@@ -360,7 +348,7 @@ export function EndpointEditorPane() {
                       const idx = d.variables.length + 1;
                       d.variables.push({
                         key: `param${idx}`,
-                        label: `自定义参数${idx}`,
+                        label: `参数 ${idx}`,
                         defaultValue: "",
                         required: true,
                         description: "",
@@ -370,26 +358,22 @@ export function EndpointEditorPane() {
                   }
                 >
                   <Plus className="h-3.5 w-3.5" />
-                  手动声明变量
+                  添加变量
                 </Button>
               </div>
 
               {draft.variables.length === 0 ? (
-                <div className="rounded-lg border border-dashed border-border py-8 text-center text-xs text-muted-foreground">
-                  当前接口暂未声明自定义变量。你可以在 URL 或 Body 中写入{" "}
-                  <code className="rounded bg-muted px-1 font-mono text-primary">
-                    {"{{phone}}"}
-                  </code>{" "}
-                  自动生成变量项。
+                <div className="rounded-lg border border-dashed border-border/70 py-6 text-center text-xs text-muted-foreground">
+                  暂无自定义变量
                 </div>
               ) : (
                 <div className="overflow-hidden rounded-lg border border-border">
                   <div className="grid grid-cols-[1fr_1fr_1.2fr_64px_1.2fr_40px] items-center gap-2 border-b border-border bg-muted/40 px-3 py-1.5 text-[11px] font-medium text-muted-foreground">
-                    <span>占位符变量名</span>
-                    <span>显示名称 (Label)</span>
-                    <span>默认值 (Default)</span>
+                    <span>变量名</span>
+                    <span>显示名</span>
+                    <span>默认值</span>
                     <span>必填</span>
-                    <span>参数说明</span>
+                    <span>备注</span>
                     <span />
                   </div>
                   <div className="divide-y divide-border/60">
@@ -407,7 +391,7 @@ export function EndpointEditorPane() {
                             })
                           }
                           className="h-8 font-mono text-xs"
-                          placeholder="如 phone"
+                          placeholder="如 userId"
                         />
                         <Input
                           value={v.label}
@@ -418,7 +402,7 @@ export function EndpointEditorPane() {
                             })
                           }
                           className="h-8 text-xs"
-                          placeholder="如 手机号"
+                          placeholder="显示名称"
                         />
                         <Input
                           value={v.defaultValue}
@@ -429,7 +413,7 @@ export function EndpointEditorPane() {
                             })
                           }
                           className="h-8 font-mono text-xs"
-                          placeholder="默认测试值"
+                          placeholder="默认值"
                         />
                         <div className="flex items-center">
                           <Switch
@@ -451,7 +435,7 @@ export function EndpointEditorPane() {
                             })
                           }
                           className="h-8 text-xs"
-                          placeholder="参数用途说明"
+                          placeholder="备注（可选）"
                         />
                         <Button
                           type="button"
@@ -485,7 +469,7 @@ export function EndpointEditorPane() {
                   })
                 }
                 presets={[
-                  { label: "手机号 phone", key: "phone", value: "{{phone}}" },
+                  { label: "分页 page", key: "page", value: "1" },
                   {
                     label: "时间戳 ts",
                     key: "ts",
@@ -505,8 +489,8 @@ export function EndpointEditorPane() {
                     return d;
                   })
                 }
-                keyPlaceholder="Header 名称 (如 Authorization)"
-                valuePlaceholder="Header 值，支持 {{token}}"
+                keyPlaceholder="Header 名称"
+                valuePlaceholder="Header 值（支持 {{变量}}）"
                 presets={HEADER_PRESETS}
               />
             </TabsContent>
@@ -517,11 +501,11 @@ export function EndpointEditorPane() {
                 <div className="flex items-center gap-1.5">
                   {(
                     [
-                      ["none", "无 Body (None)"],
+                      ["none", "None"],
                       ["json", "JSON"],
-                      ["formUrlencoded", "x-www-form-urlencoded"],
-                      ["multipart", "Multipart Form"],
-                      ["raw", "Raw 文本"],
+                      ["formUrlencoded", "Form URL-Encoded"],
+                      ["multipart", "Multipart"],
+                      ["raw", "Raw"],
                     ] as [BodyType, string][]
                   ).map(([type, label]) => (
                     <button
@@ -552,14 +536,14 @@ export function EndpointEditorPane() {
                     className="h-7 text-xs"
                     onClick={handleFormatJson}
                   >
-                    格式化 JSON
+                    格式化
                   </Button>
                 )}
               </div>
 
               {draft.body.bodyType === "none" && (
-                <div className="rounded-lg border border-dashed border-border py-8 text-center text-xs text-muted-foreground">
-                  当前请求不携带请求体（适用于 GET / HEAD 等请求）
+                <div className="rounded-lg border border-dashed border-border/70 py-6 text-center text-xs text-muted-foreground">
+                  无请求体
                 </div>
               )}
 
@@ -592,8 +576,8 @@ export function EndpointEditorPane() {
                     }
                     placeholder={
                       draft.body.bodyType === "json"
-                        ? '{\n  "phone": "{{phone}}",\n  "requestId": "{{$uuid}}"\n}'
-                        : "输入原始请求体文本，支持 {{变量}}"
+                        ? '{\n  "id": "{{id}}",\n  "requestId": "{{$uuid}}"\n}'
+                        : "输入原始文本内容"
                     }
                     className="min-h-[200px] font-mono text-xs leading-relaxed"
                   />
@@ -610,29 +594,15 @@ export function EndpointEditorPane() {
                       return d;
                     })
                   }
-                  presets={[
-                    { label: "手机号 phone", key: "phone", value: "{{phone}}" },
-                  ]}
                 />
               )}
             </TabsContent>
 
-            {/* Tab 5: Assertions (Success/Failure Rules) */}
+            {/* Tab 5: Assertions */}
             <TabsContent value="assertions" className="mt-4 space-y-4">
-              <div className="flex items-center gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/5 px-3.5 py-2.5 text-xs">
-                <ShieldCheck className="h-4 w-4 shrink-0 text-emerald-500" />
-                <span className="text-muted-foreground">
-                  Rust 执行引擎会针对每次并发响应自动运行以下规则；全部满足记为
-                  <strong className="mx-1 text-emerald-500">成功</strong>
-                  ，任一不满足记为
-                  <strong className="mx-1 text-rose-400">失败</strong>
-                  并归类失败原因。
-                </span>
-              </div>
-
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <Label className="text-xs">期望 HTTP 状态码范围</Label>
+                  <Label className="text-xs">状态码范围</Label>
                   <Input
                     value={draft.assertions.statusCodes}
                     onChange={(e) =>
@@ -644,13 +614,10 @@ export function EndpointEditorPane() {
                     placeholder="如 200-299 或 200,201"
                     className="h-8 font-mono text-xs"
                   />
-                  <p className="text-[11px] text-muted-foreground">
-                    支持区间（200-299）或逗号分隔（200,201,204）
-                  </p>
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="text-xs">最大允许耗时阈值 (ms，可选)</Label>
+                  <Label className="text-xs">最大耗时阈值 (ms)</Label>
                   <Input
                     type="number"
                     min={0}
@@ -663,13 +630,13 @@ export function EndpointEditorPane() {
                         return d;
                       })
                     }
-                    placeholder="留空表示不限制耗时 SLA"
+                    placeholder="不限"
                     className="h-8 font-mono text-xs"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="text-xs">响应体必须包含关键字 (可选)</Label>
+                  <Label className="text-xs">响应包含关键字</Label>
                   <Input
                     value={draft.assertions.bodyContains}
                     onChange={(e) =>
@@ -678,13 +645,13 @@ export function EndpointEditorPane() {
                         return d;
                       })
                     }
-                    placeholder='例如 "ok" 或 "success":true'
+                    placeholder='可选，如 "ok"'
                     className="h-8 font-mono text-xs"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="text-xs">响应体不得包含关键字 (可选)</Label>
+                  <Label className="text-xs">响应不包含关键字</Label>
                   <Input
                     value={draft.assertions.bodyNotContains}
                     onChange={(e) =>
@@ -693,7 +660,7 @@ export function EndpointEditorPane() {
                         return d;
                       })
                     }
-                    placeholder='例如 "error" 或 "频繁"'
+                    placeholder='可选，如 "error"'
                     className="h-8 font-mono text-xs"
                   />
                 </div>
@@ -702,11 +669,7 @@ export function EndpointEditorPane() {
               {/* JSON Path Assertions */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label className="text-xs">
-                    JSON 字段精确断言（支持点号路径如{" "}
-                    <code className="font-mono text-primary">code</code> 或{" "}
-                    <code className="font-mono text-primary">data.status</code>）
-                  </Label>
+                  <Label className="text-xs">JSON 字段匹配</Label>
                   <Button
                     type="button"
                     variant="outline"
@@ -723,7 +686,7 @@ export function EndpointEditorPane() {
                     }
                   >
                     <Plus className="h-3.5 w-3.5" />
-                    添加 JSON 断言
+                    添加规则
                   </Button>
                 </div>
 
@@ -738,7 +701,7 @@ export function EndpointEditorPane() {
                           return d;
                         })
                       }
-                      placeholder="JSON 路径 (如 code 或 data.ok)"
+                      placeholder="字段路径（如 code 或 data.status）"
                       className="h-8 flex-1 font-mono text-xs"
                     />
                     <span className="font-mono text-xs text-muted-foreground">
@@ -753,7 +716,7 @@ export function EndpointEditorPane() {
                           return d;
                         })
                       }
-                      placeholder="期望值 (如 0 或 true)"
+                      placeholder="期望值"
                       className="h-8 flex-1 font-mono text-xs"
                     />
                     <Button
@@ -779,7 +742,7 @@ export function EndpointEditorPane() {
             <TabsContent value="advanced" className="mt-4 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <Label className="text-xs">单接口超时时间覆盖 (ms)</Label>
+                  <Label className="text-xs">超时时间 (ms)</Label>
                   <Input
                     type="number"
                     min={100}
@@ -792,13 +755,13 @@ export function EndpointEditorPane() {
                         return d;
                       })
                     }
-                    placeholder="默认继承任务设置 (10000ms)"
+                    placeholder="默认跟随全局设置"
                     className="h-8 font-mono text-xs"
                   />
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="text-xs">接口备注描述</Label>
+                  <Label className="text-xs">备注</Label>
                   <Input
                     value={draft.description}
                     onChange={(e) =>
@@ -807,7 +770,7 @@ export function EndpointEditorPane() {
                         return d;
                       })
                     }
-                    placeholder="记录接口业务说明或注意事项"
+                    placeholder="可选说明"
                     className="h-8 text-xs"
                   />
                 </div>
@@ -824,7 +787,7 @@ export function EndpointEditorPane() {
                       })
                     }
                   />
-                  <span>自动跟随 30x 重定向</span>
+                  <span>跟随重定向</span>
                 </label>
 
                 <label className="flex items-center gap-2.5 text-xs">
@@ -837,7 +800,7 @@ export function EndpointEditorPane() {
                       })
                     }
                   />
-                  <span>校验 HTTPS TLS 证书（自签名测试环境可关闭）</span>
+                  <span>校验 SSL 证书</span>
                 </label>
               </div>
             </TabsContent>
@@ -849,9 +812,7 @@ export function EndpointEditorPane() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <FlaskConical className="h-4 w-4 text-sky-400" />
-                  <h4 className="text-xs font-semibold">
-                    单次在线调试与响应检视
-                  </h4>
+                  <h4 className="text-xs font-semibold">单次调试</h4>
                 </div>
                 <div className="flex items-center gap-2">
                   {lastTestResult && (
@@ -861,7 +822,7 @@ export function EndpointEditorPane() {
                       className="h-6 text-[11px]"
                       onClick={clearTestResult}
                     >
-                      清空响应
+                      清空
                     </Button>
                   )}
                   <Button
@@ -875,7 +836,7 @@ export function EndpointEditorPane() {
                     ) : (
                       <Play className="h-3 w-3 fill-current" />
                     )}
-                    重新发送
+                    发送
                   </Button>
                 </div>
               </div>
@@ -897,7 +858,7 @@ export function EndpointEditorPane() {
                             [v.key]: e.target.value,
                           }))
                         }
-                        placeholder={v.defaultValue || `输入 ${v.key} 测试值`}
+                        placeholder={v.defaultValue || `输入 ${v.key}`}
                         className="h-7 font-mono text-xs"
                       />
                     </div>
@@ -912,32 +873,40 @@ export function EndpointEditorPane() {
                     {lastTestResult.success ? (
                       <span className="inline-flex items-center gap-1 rounded-md bg-emerald-500/15 px-2 py-0.5 font-medium text-emerald-400">
                         <CheckCircle2 className="h-3.5 w-3.5" />
-                        断言通过
+                        通过
                       </span>
                     ) : (
                       <span className="inline-flex items-center gap-1 rounded-md bg-rose-500/15 px-2 py-0.5 font-medium text-rose-400">
                         <XCircle className="h-3.5 w-3.5" />
-                        失败：{lastTestResult.failureReason ?? "请求异常"}
+                        {lastTestResult.failureReason ?? "请求失败"}
                       </span>
                     )}
                     <Badge variant="secondary" className="font-mono text-[11px]">
-                      HTTP {lastTestResult.statusCode ?? "ERR"}{" "}
+                      {lastTestResult.statusCode ?? "ERR"}{" "}
                       {lastTestResult.statusText}
                     </Badge>
                     <Badge variant="outline" className="font-mono text-[11px]">
-                      耗时 {lastTestResult.latencyMs} ms
+                      {lastTestResult.latencyMs} ms
                     </Badge>
                     <Badge variant="outline" className="font-mono text-[11px]">
-                      大小 {formatBytes(lastTestResult.sizeBytes)}
+                      {formatBytes(lastTestResult.sizeBytes)}
                     </Badge>
                   </div>
 
                   <div className="rounded-md bg-muted/50 px-2.5 py-1.5 font-mono text-[11px] text-muted-foreground break-all">
-                    实际请求 URL: {lastTestResult.resolvedUrl}
+                    {lastTestResult.resolvedUrl}
                   </div>
 
-                  <pre className="max-h-60 overflow-auto rounded-lg border border-border bg-background p-3 font-mono text-xs leading-relaxed selectable">
-                    {lastTestResult.responseBody || "(空响应体)"}
+                  <pre className="max-h-60 overflow-auto whitespace-pre-wrap break-all rounded-lg border border-border bg-background p-3 font-mono text-xs leading-relaxed selectable">
+                    {(() => {
+                      const raw = lastTestResult.responseBody;
+                      if (!raw) return "(空响应)";
+                      try {
+                        return JSON.stringify(JSON.parse(raw), null, 2);
+                      } catch {
+                        return raw;
+                      }
+                    })()}
                   </pre>
                 </div>
               )}

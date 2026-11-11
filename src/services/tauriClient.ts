@@ -30,7 +30,7 @@ const browserState = {
   settings: {
     defaultConcurrency: 16,
     defaultTimeoutMs: 10000,
-    defaultUserAgent: "FluxPulse-Desktop/0.1.0",
+    defaultUserAgent: "Pulse/0.1.0",
     globalProxyUrl: "",
     maxHistoryRecords: 50,
     theme: "dark",
@@ -39,39 +39,46 @@ const browserState = {
 
 function getBrowserSeedEndpoints(): EndpointConfig[] {
   if (browserState.endpoints) return browserState.endpoints;
-  const ep1 = createEmptyEndpoint("内置示例 (预览模式)");
+  const ep1 = createEmptyEndpoint("示例分组");
   ep1.id = generateId();
-  ep1.name = "用户信息查询 (GET 参数模板示例)";
+  ep1.name = "获取资源详情";
   ep1.method = "GET";
   ep1.url = "https://httpbin.org/get";
   ep1.queryParams = [
-    createKeyValueItem("phone", "{{phone}}", "用户手机号"),
-    createKeyValueItem("channel", "{{channel}}", "渠道标识"),
-    createKeyValueItem("seq", "{{$seq}}", "序号"),
+    createKeyValueItem("id", "{{id}}"),
+    createKeyValueItem("seq", "{{$seq}}"),
   ];
   ep1.body.bodyType = "none";
   ep1.variables = [
     {
-      key: "phone",
-      label: "手机号",
-      defaultValue: "13800138000",
+      key: "id",
+      label: "资源 ID",
+      defaultValue: "1001",
       required: true,
-      description: "待测试手机号",
-    },
-    {
-      key: "channel",
-      label: "业务渠道",
-      defaultValue: "desktop-pc",
-      required: false,
-      description: "请求来源渠道",
+      description: "",
     },
   ];
 
-  const ep2 = createEmptyEndpoint("内置示例 (预览模式)");
+  const ep2 = createEmptyEndpoint("示例分组");
   ep2.id = generateId();
-  ep2.name = "消息提交通道 (POST JSON 模板示例)";
+  ep2.name = "创建订单记录";
   ep2.method = "POST";
   ep2.url = "https://httpbin.org/post";
+  ep2.body = {
+    bodyType: "json",
+    rawContent: '{\n  "id": "{{id}}",\n  "traceId": "{{$uuid}}"\n}',
+    rawContentType: "application/json",
+    formItems: [],
+  };
+  ep2.variables = [
+    {
+      key: "id",
+      label: "资源 ID",
+      defaultValue: "1001",
+      required: true,
+      description: "",
+    },
+  ];
 
   browserState.endpoints = [ep1, ep2];
   return browserState.endpoints;
@@ -346,8 +353,7 @@ export const tauriApi = {
           {
             code: 0,
             success: true,
-            note: "当前为浏览器预览模拟结果，在 Tauri 桌面端将由 Rust Reqwest 发起真实网络请求",
-            injectedParams: request.params,
+            data: request.params,
           },
           null,
           2,

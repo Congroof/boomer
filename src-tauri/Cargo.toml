@@ -1,12 +1,12 @@
 [package]
-name = "fluxpulse"
+name = "pulse"
 version = "0.1.0"
-description = "High-performance HTTP API concurrency runner and benchmark desktop client"
-authors = ["FluxPulse Contributors"]
+description = "HTTP API runner desktop client"
+authors = ["Pulse Contributors"]
 edition = "2021"
 
 [lib]
-name = "fluxpulse_lib"
+name = "pulse_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]

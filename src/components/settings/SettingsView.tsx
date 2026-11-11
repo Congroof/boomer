@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Cpu, FolderOpen, Save, Settings2 } from "lucide-react";
+import { Save, Settings2 } from "lucide-react";
 import { toast } from "sonner";
 import { useAppStore } from "@/stores/useAppStore";
 import type { AppSettings } from "@/types/settings";
@@ -26,7 +26,7 @@ export function SettingsView() {
   const handleSave = async () => {
     try {
       await saveSettings(form);
-      toast.success("全局引擎配置已保存");
+      toast.success("设置已保存");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : String(err));
     }
@@ -34,32 +34,27 @@ export function SettingsView() {
 
   return (
     <ScrollArea className="h-full w-full">
-      <div className="mx-auto max-w-3xl space-y-6 p-6">
+      <div className="mx-auto max-w-2xl space-y-6 p-6">
         <div className="flex items-center justify-between">
-          <div>
-            <h2 className="flex items-center gap-2 text-base font-bold">
-              <Settings2 className="h-4 w-4 text-primary" />
-              Rust 执行引擎与客户端全局配置
-            </h2>
-            <p className="text-xs text-muted-foreground">
-              配置默认并发度、超时阈值、HTTP/SOCKS5 代理及跨平台外观主题（数据纯本地保存）。
-            </p>
-          </div>
+          <h2 className="flex items-center gap-2 text-base font-bold">
+            <Settings2 className="h-4 w-4 text-primary" />
+            设置
+          </h2>
           <Button size="sm" className="gap-1.5" onClick={() => void handleSave()}>
             <Save className="h-3.5 w-3.5" />
-            保存设置
+            保存
           </Button>
         </div>
 
-        {/* Engine Defaults */}
+        {/* General & Network Defaults */}
         <div className="space-y-4 rounded-xl border border-border bg-card p-5">
-          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            网络与并发默认参数
+          <h3 className="text-xs font-semibold text-muted-foreground">
+            请求与任务默认项
           </h3>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <Label className="text-xs">新建任务默认并发数</Label>
+              <Label className="text-xs">默认并发数</Label>
               <Input
                 type="number"
                 min={1}
@@ -79,7 +74,7 @@ export function SettingsView() {
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs">默认单次请求超时时间 (ms)</Label>
+              <Label className="text-xs">默认超时时间 (ms)</Label>
               <Input
                 type="number"
                 min={200}
@@ -98,33 +93,31 @@ export function SettingsView() {
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs">默认 User-Agent 请求头</Label>
+              <Label className="text-xs">默认 User-Agent</Label>
               <Input
                 value={form.defaultUserAgent}
                 onChange={(e) =>
                   setForm({ ...form, defaultUserAgent: e.target.value })
                 }
-                placeholder="FluxPulse-Desktop/0.1.0"
+                placeholder="Pulse/0.1.0"
                 className="h-8 font-mono text-xs"
               />
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs">
-                全局网络代理 (支持 http:// 或 socks5://)
-              </Label>
+              <Label className="text-xs">网络代理</Label>
               <Input
                 value={form.globalProxyUrl}
                 onChange={(e) =>
                   setForm({ ...form, globalProxyUrl: e.target.value })
                 }
-                placeholder="留空直连，如 http://127.0.0.1:7890"
+                placeholder="如 http://127.0.0.1:7890（留空直连）"
                 className="h-8 font-mono text-xs"
               />
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs">历史记录最大保留条数</Label>
+              <Label className="text-xs">历史记录上限</Label>
               <Input
                 type="number"
                 min={5}
@@ -144,7 +137,7 @@ export function SettingsView() {
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs">界面外观主题</Label>
+              <Label className="text-xs">外观主题</Label>
               <Select
                 value={form.theme}
                 onValueChange={(v) =>
@@ -155,55 +148,18 @@ export function SettingsView() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="dark">深色主题 (Dark)</SelectItem>
-                  <SelectItem value="light">浅色主题 (Light)</SelectItem>
-                  <SelectItem value="system">跟随操作系统 (System)</SelectItem>
+                  <SelectItem value="dark">深色</SelectItem>
+                  <SelectItem value="light">浅色</SelectItem>
+                  <SelectItem value="system">跟随系统</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
         </div>
 
-        {/* Native Runtime Diagnostics */}
-        {runtimeInfo && (
-          <div className="space-y-3 rounded-xl border border-border bg-card p-5">
-            <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              <Cpu className="h-3.5 w-3.5 text-primary" />
-              本地运行环境信息 (macOS / Windows)
-            </h3>
-
-            <div className="grid grid-cols-2 gap-3 text-xs">
-              <div className="rounded-lg bg-muted/40 p-3">
-                <span className="text-[11px] text-muted-foreground">
-                  操作系统与指令集架构
-                </span>
-                <div className="mt-0.5 font-mono font-semibold">
-                  {runtimeInfo.os} ({runtimeInfo.arch}) · {runtimeInfo.cpuCores}{" "}
-                  逻辑核心
-                </div>
-              </div>
-
-              <div className="rounded-lg bg-muted/40 p-3">
-                <span className="text-[11px] text-muted-foreground">
-                  内置离线回显压测端点
-                </span>
-                <div className="mt-0.5 font-mono font-semibold text-primary selectable">
-                  {runtimeInfo.mockBaseUrl}
-                </div>
-              </div>
-
-              <div className="col-span-2 rounded-lg bg-muted/40 p-3">
-                <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
-                  <FolderOpen className="h-3 w-3" />
-                  纯本地配置与历史存储目录
-                </span>
-                <div className="mt-0.5 font-mono text-[11px] break-all selectable">
-                  {runtimeInfo.dataDir}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        <div className="text-right font-mono text-[11px] text-muted-foreground">
+          Pulse v{runtimeInfo?.appVersion ?? "0.1.0"}
+        </div>
       </div>
     </ScrollArea>
   );

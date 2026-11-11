@@ -28,19 +28,14 @@ export const BUILTIN_TEMPLATE_TOKENS: BuiltinTokenInfo[] = [
     example: "1, 2, 3...",
   },
   {
-    token: "{{$random_int:100000:999999}}",
+    token: "{{$random_int:1000:9999}}",
     label: "区间随机整数",
-    example: "583920",
+    example: "5839",
   },
   {
     token: "{{$random_str:8}}",
-    label: "随机字母数字串",
+    label: "随机字符串",
     example: "a9Kp2Qx7",
-  },
-  {
-    token: "{{$random_phone}}",
-    label: "随机测试手机号",
-    example: "13859102834",
   },
 ];
 
@@ -146,7 +141,7 @@ export function syncEndpointVariables(
       merged.push({
         key,
         label: COMMON_VARIABLE_LABELS[key] ?? key,
-        defaultValue: key === "phone" || key === "mobile" ? "13800138000" : "",
+        defaultValue: "",
         required: true,
         description: "",
       });

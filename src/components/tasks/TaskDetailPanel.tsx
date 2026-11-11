@@ -63,6 +63,10 @@ export function TaskDetailPanel({ task }: TaskDetailPanelProps) {
       ? ((metrics.succeeded / metrics.completed) * 100).toFixed(1)
       : "0.0";
 
+  const paramKeysCount = Object.keys(task.config.singleParams).filter(
+    (k) => task.config.singleParams[k] !== "",
+  ).length;
+
   const statusMeta = {
     running: {
       label: "运行中",
@@ -85,7 +89,7 @@ export function TaskDetailPanel({ task }: TaskDetailPanelProps) {
       dot: "bg-zinc-400",
     },
     failed: {
-      label: "异常熔断",
+      label: "失败",
       cls: "border-rose-500/40 bg-rose-500/15 text-rose-400",
       dot: "bg-rose-400",
     },
@@ -105,7 +109,6 @@ export function TaskDetailPanel({ task }: TaskDetailPanelProps) {
       (item) =>
         item.endpointName.toLowerCase().includes(q) ||
         item.resolvedUrl.toLowerCase().includes(q) ||
-        JSON.stringify(item.injectedParams).toLowerCase().includes(q) ||
         (item.failureReason ?? "").toLowerCase().includes(q),
     );
   }, [task.recentLogs, task.recentFailures, logFilter, logQuery]);
@@ -113,7 +116,7 @@ export function TaskDetailPanel({ task }: TaskDetailPanelProps) {
   const handlePause = async () => {
     try {
       await pauseTask(task.id);
-      toast.info("任务已暂停，所有待发协程已挂起");
+      toast.info("任务已暂停");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : String(err));
     }
@@ -122,7 +125,7 @@ export function TaskDetailPanel({ task }: TaskDetailPanelProps) {
   const handleResume = async () => {
     try {
       await resumeTask(task.id);
-      toast.success("任务已恢复并发执行");
+      toast.success("任务已恢复");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : String(err));
     }
@@ -131,7 +134,7 @@ export function TaskDetailPanel({ task }: TaskDetailPanelProps) {
   const handleCancel = async () => {
     try {
       await cancelTask(task.id);
-      toast.warning("任务已手动终止");
+      toast.warning("任务已终止");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : String(err));
     }
@@ -142,43 +145,39 @@ export function TaskDetailPanel({ task }: TaskDetailPanelProps) {
       {/* Control & Progress Header Card */}
       <div className="rounded-xl border border-border bg-card p-4 shadow-sm space-y-3.5">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2.5">
-              <h3 className="text-base font-bold tracking-tight">
-                {task.config.name}
-              </h3>
-              <span
-                className={cn(
-                  "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium",
-                  statusMeta.cls,
-                )}
-              >
-                <span className={cn("h-1.5 w-1.5 rounded-full", statusMeta.dot)} />
-                {statusMeta.label}
-              </span>
-              <Badge variant="outline" className="font-mono text-[11px]">
-                并发 {task.config.concurrency}
-              </Badge>
-              <Badge variant="outline" className="font-mono text-[11px]">
-                轮次 {task.config.iterations}
-              </Badge>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              注入参数摘要：
-              <code className="ml-1 rounded bg-muted px-1.5 py-0.5 font-mono text-[11px] text-foreground">
-                {Object.keys(task.config.singleParams).length > 0
-                  ? JSON.stringify(task.config.singleParams)
-                  : "(无全局固定参数)"}
-              </code>
-              {task.config.paramMode === "dataset" && (
-                <span className="ml-2 text-indigo-400">
-                  · 批量数据集 {task.config.datasetRows.length} 行
-                </span>
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className="text-base font-bold tracking-tight">
+              {task.config.name}
+            </h3>
+            <span
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium",
+                statusMeta.cls,
               )}
-            </p>
+            >
+              <span className={cn("h-1.5 w-1.5 rounded-full", statusMeta.dot)} />
+              {statusMeta.label}
+            </span>
+            <Badge variant="outline" className="font-mono text-[11px]">
+              并发 {task.config.concurrency}
+            </Badge>
+            <Badge variant="outline" className="font-mono text-[11px]">
+              轮次 {task.config.iterations}
+            </Badge>
+            {task.config.paramMode === "dataset" ? (
+              <Badge variant="secondary" className="font-mono text-[11px]">
+                批量 {task.config.datasetRows.length} 组
+              </Badge>
+            ) : (
+              paramKeysCount > 0 && (
+                <Badge variant="secondary" className="font-mono text-[11px]">
+                  变量 {paramKeysCount} 项
+                </Badge>
+              )
+            )}
           </div>
 
-          {/* Action Buttons: Pause / Resume / Stop / Re-run / Export */}
+          {/* Action Buttons */}
           <div className="flex flex-wrap items-center gap-2">
             {task.status === "running" && (
               <Button
@@ -188,7 +187,7 @@ export function TaskDetailPanel({ task }: TaskDetailPanelProps) {
                 onClick={() => void handlePause()}
               >
                 <Pause className="h-3.5 w-3.5 fill-current" />
-                暂停任务
+                暂停
               </Button>
             )}
 
@@ -199,7 +198,7 @@ export function TaskDetailPanel({ task }: TaskDetailPanelProps) {
                 onClick={() => void handleResume()}
               >
                 <Play className="h-3.5 w-3.5 fill-current" />
-                恢复执行
+                继续
               </Button>
             )}
 
@@ -224,7 +223,7 @@ export function TaskDetailPanel({ task }: TaskDetailPanelProps) {
               }
             >
               <RotateCcw className="h-3.5 w-3.5" />
-              以此配置重跑
+              重跑
             </Button>
 
             <Button
@@ -233,7 +232,7 @@ export function TaskDetailPanel({ task }: TaskDetailPanelProps) {
               className="h-8 gap-1 text-xs"
               onClick={() => {
                 exportTaskLogsAsCsv(task);
-                toast.success("已导出请求明细 CSV");
+                toast.success("已导出 CSV");
               }}
             >
               <FileSpreadsheet className="h-3.5 w-3.5" />
@@ -246,7 +245,7 @@ export function TaskDetailPanel({ task }: TaskDetailPanelProps) {
               className="h-8 gap-1 text-xs"
               onClick={() => {
                 exportTaskReportAsJson(task);
-                toast.success("已导出完整统计报告 JSON");
+                toast.success("已导出 JSON");
               }}
             >
               <Download className="h-3.5 w-3.5" />
@@ -259,20 +258,20 @@ export function TaskDetailPanel({ task }: TaskDetailPanelProps) {
         <div className="space-y-1.5">
           <div className="flex items-center justify-between text-xs">
             <span className="font-mono text-muted-foreground">
-              执行进度：{formatNumber(metrics.completed)} /{" "}
+              {formatNumber(metrics.completed)} /{" "}
               {formatNumber(metrics.totalPlanned)} ({progressPct.toFixed(1)}%)
               {metrics.inFlight > 0 && (
                 <span className="ml-2 text-primary">
-                  · 在途并发 {metrics.inFlight}
+                  · 进行中 {metrics.inFlight}
                 </span>
               )}
             </span>
             <span className="font-mono text-muted-foreground">
-              活跃耗时 {formatDurationMs(metrics.activeElapsedMs)} · 累计接收{" "}
+              耗时 {formatDurationMs(metrics.activeElapsedMs)} ·{" "}
               {formatBytes(metrics.bytesReceived)}
             </span>
           </div>
-          <div className="h-2.5 w-full overflow-hidden rounded-full bg-muted">
+          <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
             <div
               className={cn(
                 "h-full transition-all duration-150",
@@ -292,7 +291,7 @@ export function TaskDetailPanel({ task }: TaskDetailPanelProps) {
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <div className="rounded-xl border border-border bg-card p-3.5">
           <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>成功请求数 / 成功率</span>
+            <span>成功请求</span>
             <CheckCircle2 className="h-4 w-4 text-emerald-500" />
           </div>
           <div className="mt-2 flex items-baseline gap-2">
@@ -307,22 +306,24 @@ export function TaskDetailPanel({ task }: TaskDetailPanelProps) {
 
         <div className="rounded-xl border border-border bg-card p-3.5">
           <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>失败请求数 / 重试</span>
+            <span>失败请求</span>
             <XCircle className="h-4 w-4 text-rose-500" />
           </div>
           <div className="mt-2 flex items-baseline gap-2">
             <span className="font-mono text-2xl font-bold text-rose-500">
               {formatNumber(metrics.failed)}
             </span>
-            <span className="font-mono text-xs text-muted-foreground">
-              重试 {formatNumber(metrics.retried)} 次
-            </span>
+            {metrics.retried > 0 && (
+              <span className="font-mono text-xs text-muted-foreground">
+                重试 {formatNumber(metrics.retried)}
+              </span>
+            )}
           </div>
         </div>
 
         <div className="rounded-xl border border-border bg-card p-3.5">
           <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>吞吐速率 (RPS)</span>
+            <span>吞吐率 (RPS)</span>
             <Gauge className="h-4 w-4 text-sky-400" />
           </div>
           <div className="mt-2 flex items-baseline gap-2">
@@ -332,14 +333,14 @@ export function TaskDetailPanel({ task }: TaskDetailPanelProps) {
                 : metrics.avgRps}
             </span>
             <span className="font-mono text-xs text-muted-foreground">
-              均值 {metrics.avgRps} /s
+              均值 {metrics.avgRps}/s
             </span>
           </div>
         </div>
 
         <div className="rounded-xl border border-border bg-card p-3.5">
           <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>平均响应耗时</span>
+            <span>平均耗时</span>
             <Clock className="h-4 w-4 text-indigo-400" />
           </div>
           <div className="mt-2 flex items-baseline gap-2">
@@ -348,7 +349,7 @@ export function TaskDetailPanel({ task }: TaskDetailPanelProps) {
               <span className="ml-0.5 text-sm font-normal">ms</span>
             </span>
             <span className="font-mono text-xs text-muted-foreground">
-              [{metrics.minLatencyMs}~{metrics.maxLatencyMs}ms]
+              {metrics.minLatencyMs}~{metrics.maxLatencyMs}ms
             </span>
           </div>
         </div>
@@ -357,15 +358,14 @@ export function TaskDetailPanel({ task }: TaskDetailPanelProps) {
       {/* Real-time Charts & Percentile Breakdown */}
       <TaskCharts metrics={metrics} />
 
-      {/* Bottom Tabs: Per-Endpoint Breakdown vs Request Logs */}
+      {/* Bottom Tabs */}
       <Tabs defaultValue="endpoints" className="w-full">
         <TabsList>
           <TabsTrigger value="endpoints" className="text-xs">
-            分接口统计明细 ({metrics.endpointMetrics.length})
+            接口明细 ({metrics.endpointMetrics.length})
           </TabsTrigger>
           <TabsTrigger value="logs" className="text-xs">
-            实时请求与异常检视 ({task.recentLogs.length} / 失败{" "}
-            {task.recentFailures.length})
+            请求记录 ({task.recentLogs.length})
           </TabsTrigger>
         </TabsList>
 
@@ -380,7 +380,7 @@ export function TaskDetailPanel({ task }: TaskDetailPanelProps) {
               <span>失败</span>
               <span>成功率</span>
               <span>平均耗时</span>
-              <span>P95 耗时</span>
+              <span>P95</span>
             </div>
             <div className="divide-y divide-border/60">
               {metrics.endpointMetrics.map((ep) => {
@@ -433,17 +433,17 @@ export function TaskDetailPanel({ task }: TaskDetailPanelProps) {
           </div>
         </TabsContent>
 
-        {/* Sampled Request Logs & Failure Inspector */}
+        {/* Sampled Request Logs */}
         <TabsContent value="logs" className="mt-3 space-y-2.5">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-1.5">
               {(
                 [
-                  ["all", `最近采样 (${task.recentLogs.length})`],
-                  ["failed", `失败记录 (${task.recentFailures.length})`],
+                  ["all", `全部 (${task.recentLogs.length})`],
+                  ["failed", `失败 (${task.recentFailures.length})`],
                   [
                     "succeeded",
-                    `成功记录 (${task.recentLogs.filter((l) => l.success).length})`,
+                    `成功 (${task.recentLogs.filter((l) => l.success).length})`,
                   ],
                 ] as const
               ).map(([key, label]) => (
@@ -468,7 +468,7 @@ export function TaskDetailPanel({ task }: TaskDetailPanelProps) {
               <Input
                 value={logQuery}
                 onChange={(e) => setLogQuery(e.target.value)}
-                placeholder="过滤 URL、手机号参数、失败原因..."
+                placeholder="搜索接口、URL 或错误原因..."
                 className="h-7 pl-8 text-xs"
               />
             </div>
@@ -476,18 +476,18 @@ export function TaskDetailPanel({ task }: TaskDetailPanelProps) {
 
           <div className="overflow-hidden rounded-xl border border-border bg-card">
             <div className="grid grid-cols-[64px_92px_1.2fr_1.6fr_84px_76px_1.2fr] items-center gap-2 border-b border-border bg-muted/40 px-3.5 py-2 text-[11px] font-medium text-muted-foreground">
-              <span>#序号</span>
+              <span>序号</span>
               <span>时间</span>
               <span>接口</span>
-              <span>请求 URL / 注入参数</span>
+              <span>请求 URL</span>
               <span>状态</span>
               <span>耗时</span>
-              <span>结果或失败原因</span>
+              <span>说明</span>
             </div>
 
             {displayedLogs.length === 0 ? (
               <div className="py-8 text-center text-xs text-muted-foreground">
-                暂无符合筛选条件的请求记录
+                暂无记录
               </div>
             ) : (
               <div className="max-h-80 divide-y divide-border/60 overflow-y-auto">
@@ -538,9 +538,7 @@ export function TaskDetailPanel({ task }: TaskDetailPanelProps) {
                         log.success ? "text-emerald-400" : "text-rose-400",
                       )}
                     >
-                      {log.success
-                        ? "通过断言 (点击查看响应)"
-                        : (log.failureReason ?? "请求失败")}
+                      {log.success ? "正常" : (log.failureReason ?? "请求失败")}
                     </span>
                   </div>
                 ))}
@@ -559,7 +557,7 @@ export function TaskDetailPanel({ task }: TaskDetailPanelProps) {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-sm">
               <Activity className="h-4 w-4 text-primary" />
-              请求详情检视 #{inspectedLog?.seq} — {inspectedLog?.endpointName}
+              请求详情 #{inspectedLog?.seq} — {inspectedLog?.endpointName}
             </DialogTitle>
           </DialogHeader>
           {inspectedLog && (
@@ -568,47 +566,49 @@ export function TaskDetailPanel({ task }: TaskDetailPanelProps) {
                 <Badge
                   variant={inspectedLog.success ? "default" : "destructive"}
                 >
-                  {inspectedLog.success ? "成功" : "失败"} · HTTP{" "}
+                  {inspectedLog.success ? "成功" : "失败"} ·{" "}
                   {inspectedLog.statusCode ?? "ERR"}
                 </Badge>
                 <Badge variant="outline" className="font-mono">
-                  耗时 {inspectedLog.latencyMs} ms
+                  {inspectedLog.latencyMs} ms
                 </Badge>
                 <Badge variant="outline" className="font-mono">
-                  时间 {inspectedLog.timestamp}
+                  {inspectedLog.timestamp}
                 </Badge>
               </div>
 
               <div className="space-y-1">
                 <span className="text-[11px] font-medium text-muted-foreground">
-                  解析后完整 URL
+                  请求地址
                 </span>
                 <div className="rounded-md border border-border bg-muted/40 p-2 font-mono text-[11px] break-all selectable">
                   {inspectedLog.method} {inspectedLog.resolvedUrl}
                 </div>
               </div>
 
-              <div className="space-y-1">
-                <span className="text-[11px] font-medium text-muted-foreground">
-                  本次注入参数快照
-                </span>
-                <pre className="rounded-md border border-border bg-muted/40 p-2 font-mono text-[11px] selectable">
-                  {JSON.stringify(inspectedLog.injectedParams, null, 2)}
-                </pre>
-              </div>
+              {Object.keys(inspectedLog.injectedParams).length > 0 && (
+                <div className="space-y-1">
+                  <span className="text-[11px] font-medium text-muted-foreground">
+                    变量值
+                  </span>
+                  <pre className="rounded-md border border-border bg-muted/40 p-2 font-mono text-[11px] selectable">
+                    {JSON.stringify(inspectedLog.injectedParams, null, 2)}
+                  </pre>
+                </div>
+              )}
 
               {inspectedLog.failureReason && (
                 <div className="rounded-md border border-rose-500/30 bg-rose-500/10 p-2 text-rose-300">
-                  失败原因：{inspectedLog.failureReason}
+                  {inspectedLog.failureReason}
                 </div>
               )}
 
               <div className="space-y-1">
                 <span className="text-[11px] font-medium text-muted-foreground">
-                  响应体预览
+                  响应内容
                 </span>
-                <pre className="max-h-56 overflow-auto rounded-md border border-border bg-background p-3 font-mono text-[11px] leading-relaxed selectable">
-                  {inspectedLog.responsePreview || "(无响应内容)"}
+                <pre className="max-h-56 overflow-auto whitespace-pre-wrap break-all rounded-md border border-border bg-background p-3 font-mono text-[11px] leading-relaxed selectable">
+                  {inspectedLog.responsePreview || "(空响应)"}
                 </pre>
               </div>
             </div>

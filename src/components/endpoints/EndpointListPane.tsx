@@ -108,13 +108,13 @@ export function EndpointListPane() {
   };
 
   return (
-    <div className="flex h-full w-80 shrink-0 flex-col border-r border-border bg-card/40">
+    <div className="flex h-full w-72 shrink-0 flex-col border-r border-border bg-card/40">
       {/* Header Actions */}
       <div className="space-y-2.5 border-b border-border p-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1.5">
             <FolderKanban className="h-4 w-4 text-primary" />
-            <h2 className="text-sm font-semibold">接口集合 ({endpoints.length})</h2>
+            <h2 className="text-sm font-semibold">接口库 ({endpoints.length})</h2>
           </div>
           <div className="flex items-center gap-1">
             <Button
@@ -122,7 +122,7 @@ export function EndpointListPane() {
               variant="outline"
               className="h-7 gap-1 px-2 text-xs"
               onClick={() => setCurlOpen(true)}
-              title="粘贴 cURL 快速录入"
+              title="从 cURL 导入"
             >
               <Terminal className="h-3.5 w-3.5" />
               cURL
@@ -144,7 +144,7 @@ export function EndpointListPane() {
           <Input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="搜索名称、URL、{{参数}}..."
+            placeholder="搜索名称或 URL..."
             className="h-8 pl-8 text-xs"
           />
         </div>
@@ -187,7 +187,7 @@ export function EndpointListPane() {
         <div className="space-y-1 p-2">
           {filtered.length === 0 ? (
             <div className="space-y-2 py-10 text-center text-xs text-muted-foreground">
-              <p>未找到匹配的接口</p>
+              <p>暂无匹配的接口</p>
               <Button
                 variant="outline"
                 size="sm"
@@ -195,7 +195,7 @@ export function EndpointListPane() {
                 onClick={() => void addDemoEndpoints()}
               >
                 <Sparkles className="h-3.5 w-3.5" />
-                载入内置示例接口
+                载入示例接口
               </Button>
             </div>
           ) : (
@@ -302,7 +302,7 @@ export function EndpointListPane() {
           onClick={handleRunFiltered}
         >
           <Play className="h-3.5 w-3.5 text-emerald-500" />
-          批量执行当前筛选接口 ({filtered.filter((e) => e.enabled).length})
+          批量运行 ({filtered.filter((e) => e.enabled).length})
         </Button>
 
         <div className="grid grid-cols-2 gap-1.5">
@@ -320,7 +320,7 @@ export function EndpointListPane() {
             onClick={() => fileInputRef.current?.click()}
           >
             <FileUp className="h-3 w-3" />
-            导入 JSON
+            导入
           </Button>
           <Button
             variant="outline"
@@ -328,12 +328,12 @@ export function EndpointListPane() {
             className="h-7 gap-1 text-[11px]"
             onClick={() => {
               exportEndpointsAsJson(endpoints);
-              toast.success("已导出全部接口 JSON 文件");
+              toast.success("已导出接口配置");
             }}
             disabled={endpoints.length === 0}
           >
             <Download className="h-3 w-3" />
-            导出备份
+            导出
           </Button>
         </div>
       </div>

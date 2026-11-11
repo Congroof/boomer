@@ -17,9 +17,9 @@ interface KeyValueEditorProps {
 export function KeyValueEditor({
   items,
   onChange,
-  keyPlaceholder = "参数名 (如 phone)",
-  valuePlaceholder = "参数值，支持 {{phone}} 或 {{$uuid}}",
-  descPlaceholder = "备注说明",
+  keyPlaceholder = "参数名",
+  valuePlaceholder = "参数值（支持 {{变量}}）",
+  descPlaceholder = "备注（可选）",
   presets,
 }: KeyValueEditorProps) {
   const handleUpdate = (
@@ -66,19 +66,15 @@ export function KeyValueEditor({
 
       {items.length === 0 ? (
         <div className="rounded-lg border border-dashed border-border/70 py-6 text-center text-xs text-muted-foreground">
-          暂无字段，点击右上角「添加字段」录入参数（支持{" "}
-          <code className="rounded bg-muted px-1 py-0.5 font-mono text-primary">
-            {"{{phone}}"}
-          </code>{" "}
-          动态变量占位符）
+          暂无字段，点击右上角「添加字段」新增
         </div>
       ) : (
         <div className="overflow-hidden rounded-lg border border-border">
           <div className="grid grid-cols-[44px_1fr_1.4fr_1fr_40px] items-center gap-2 border-b border-border bg-muted/40 px-3 py-1.5 text-[11px] font-medium text-muted-foreground">
             <span>启用</span>
-            <span>键名 (Key)</span>
-            <span>取值 / 模板 (Value)</span>
-            <span>说明</span>
+            <span>名称</span>
+            <span>值</span>
+            <span>备注</span>
             <span />
           </div>
           <div className="divide-y divide-border/60">

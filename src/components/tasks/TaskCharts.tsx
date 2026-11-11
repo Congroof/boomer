@@ -22,17 +22,10 @@ export function TaskCharts({ metrics }: TaskChartsProps) {
 
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-      {/* Real-time Throughput & Success/Failure Stacked Bars */}
+      {/* Throughput & Success/Failure Stacked Bars */}
       <div className="col-span-2 rounded-xl border border-border bg-card p-4">
         <div className="mb-3 flex items-center justify-between">
-          <div>
-            <h4 className="text-xs font-semibold">
-              实时吞吐趋势 (RPS · 成功 vs 失败)
-            </h4>
-            <p className="text-[11px] text-muted-foreground">
-              按活跃运行秒数聚合请求完成速率与成功/失败占比
-            </p>
-          </div>
+          <h4 className="text-xs font-semibold">吞吐趋势 (RPS)</h4>
           <div className="flex items-center gap-3 text-[11px]">
             <span className="flex items-center gap-1 text-emerald-400">
               <span className="h-2 w-2 rounded-sm bg-emerald-500" />
@@ -43,14 +36,14 @@ export function TaskCharts({ metrics }: TaskChartsProps) {
               失败
             </span>
             <span className="font-mono text-muted-foreground">
-              峰值 {formatNumber(metrics.peakRps)} req/s
+              峰值 {formatNumber(metrics.peakRps)}/s
             </span>
           </div>
         </div>
 
         {points.length === 0 ? (
           <div className="flex h-36 items-center justify-center rounded-lg border border-dashed border-border/60 text-xs text-muted-foreground">
-            等待实时流量采样数据...
+            等待采样数据...
           </div>
         ) : (
           <div className="relative h-36 w-full pt-2">
@@ -59,7 +52,6 @@ export function TaskCharts({ metrics }: TaskChartsProps) {
               preserveAspectRatio="none"
               className="h-28 w-full overflow-visible"
             >
-              {/* Subtle horizontal grid lines */}
               {[0.25, 0.5, 0.75, 1].map((ratio) => (
                 <line
                   key={ratio}
@@ -88,7 +80,7 @@ export function TaskCharts({ metrics }: TaskChartsProps) {
                 return (
                   <g key={pt.secondOffset}>
                     <title>
-                      {`${pt.timestampLabel}: 总计 ${pt.rps} req/s (成功 ${pt.succeeded}, 失败 ${pt.failed}, 均耗时 ${pt.avgLatencyMs}ms)`}
+                      {`${pt.timestampLabel}: ${pt.rps}/s (成功 ${pt.succeeded}, 失败 ${pt.failed}, 均耗时 ${pt.avgLatencyMs}ms)`}
                     </title>
                     {okH > 0 && (
                       <rect
@@ -124,7 +116,7 @@ export function TaskCharts({ metrics }: TaskChartsProps) {
 
       {/* Latency Percentiles + Status Codes & Failure Reasons */}
       <div className="space-y-3 rounded-xl border border-border bg-card p-4">
-        <h4 className="text-xs font-semibold">响应耗时分位与状态码分布</h4>
+        <h4 className="text-xs font-semibold">耗时分位与状态码</h4>
 
         <div className="grid grid-cols-4 gap-1.5 text-center">
           {[
@@ -145,9 +137,9 @@ export function TaskCharts({ metrics }: TaskChartsProps) {
 
         {/* Status Codes */}
         <div className="space-y-1.5 pt-1">
-          <div className="text-[11px] text-muted-foreground">HTTP 状态码统计</div>
+          <div className="text-[11px] text-muted-foreground">状态码分布</div>
           {statusEntries.length === 0 ? (
-            <p className="text-[11px] text-muted-foreground/70">暂无响应记录</p>
+            <p className="text-[11px] text-muted-foreground/70">暂无记录</p>
           ) : (
             <div className="flex flex-wrap gap-1.5">
               {statusEntries.map(([code, count]) => {
@@ -172,7 +164,7 @@ export function TaskCharts({ metrics }: TaskChartsProps) {
         {/* Top Failure Reasons */}
         {failureEntries.length > 0 && (
           <div className="space-y-1 pt-1">
-            <div className="text-[11px] text-rose-400">主要失败原因归类</div>
+            <div className="text-[11px] text-rose-400">失败原因</div>
             <div className="space-y-1 max-h-20 overflow-y-auto">
               {failureEntries.slice(0, 4).map(([reason, cnt]) => (
                 <div

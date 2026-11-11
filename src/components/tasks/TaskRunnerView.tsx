@@ -3,7 +3,7 @@ import {
   Database,
   Pause,
   Play,
-  PlusCircle,
+  Plus,
   Rocket,
   Trash2,
 } from "lucide-react";
@@ -32,39 +32,38 @@ export function TaskRunnerView() {
   const selectedTask =
     tasks.find((t) => t.id === selectedTaskId) ?? tasks[0] ?? null;
 
-  const handleQuickDemoRun = async () => {
-    const enabled = endpoints.filter((e) => e.enabled);
-    if (enabled.length === 0) {
-      toast.error("当前没有已启用接口，请先前往接口管理库启用或新建接口");
+  const enabledEndpoints = endpoints.filter((e) => e.enabled);
+
+  const handleQuickCreate = () => {
+    if (enabledEndpoints.length === 0) {
+      toast.error("暂无已启用接口，请先前往接口库添加或启用接口");
       return;
     }
-    openComposer(enabled.map((e) => e.id));
+    openComposer(enabledEndpoints.map((e) => e.id));
   };
 
   if (tasks.length === 0) {
     return (
       <div className="flex h-full flex-col items-center justify-center p-8">
-        <div className="max-w-lg space-y-5 rounded-2xl border border-border bg-card/70 p-8 text-center shadow-sm">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-500/20 via-indigo-500/20 to-emerald-500/20 text-primary ring-1 ring-primary/25">
-            <Rocket className="h-7 w-7" />
+        <div className="max-w-md space-y-5 rounded-2xl border border-border bg-card/70 p-8 text-center shadow-sm">
+          <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-sky-500/20 via-indigo-500/20 to-emerald-500/20 text-primary ring-1 ring-primary/25">
+            <Rocket className="h-6 w-6" />
           </div>
 
-          <div className="space-y-2">
-            <h2 className="text-lg font-bold tracking-tight">
-              准备就绪 · 启动你的第一个高并发任务
-            </h2>
+          <div className="space-y-1.5">
+            <h2 className="text-base font-bold tracking-tight">暂无运行任务</h2>
             <p className="text-xs leading-relaxed text-muted-foreground">
-              当前接口库已配置{" "}
+              当前接口库共{" "}
               <strong className="text-foreground">{endpoints.length}</strong>{" "}
-              个接口（其中{" "}
+              个接口（
               <strong className="text-emerald-500">
-                {endpoints.filter((e) => e.enabled).length}
+                {enabledEndpoints.length}
               </strong>{" "}
-              个已启用）。你可以直接注入手机号等自定义参数并发执行，并在运行过程中随时暂停、恢复及查看实时成功/失败分布。
+              个已启用），点击下方按钮开始创建任务。
             </p>
           </div>
 
-          <div className="flex items-center justify-center gap-3 pt-1">
+          <div className="flex items-center justify-center gap-2.5 pt-1">
             <Button
               variant="outline"
               size="sm"
@@ -72,15 +71,15 @@ export function TaskRunnerView() {
               onClick={() => setActiveTab("endpoints")}
             >
               <Database className="h-4 w-4" />
-              管理 / 录入接口
+              接口库
             </Button>
             <Button
               size="sm"
               className="gap-1.5 px-5"
-              onClick={() => void handleQuickDemoRun()}
+              onClick={handleQuickCreate}
             >
-              <PlusCircle className="h-4 w-4" />
-              配置并启动并发任务
+              <Plus className="h-4 w-4" />
+              新建任务
             </Button>
           </div>
         </div>
@@ -90,24 +89,22 @@ export function TaskRunnerView() {
 
   return (
     <div className="flex h-full w-full overflow-hidden">
-      {/* Left Task Queue & Session Rail */}
-      <div className="flex h-full w-72 shrink-0 flex-col border-r border-border bg-card/40">
+      {/* Left Task Queue Rail */}
+      <div className="flex h-full w-64 shrink-0 flex-col border-r border-border bg-card/40">
         <div className="flex items-center justify-between border-b border-border px-3.5 py-3">
           <div className="flex items-center gap-1.5">
             <Activity className="h-4 w-4 text-primary" />
             <span className="text-xs font-semibold">
-              任务队列 ({tasks.length})
+              任务列表 ({tasks.length})
             </span>
           </div>
           <Button
             size="sm"
             variant="outline"
             className="h-7 gap-1 px-2 text-xs"
-            onClick={() =>
-              openComposer(endpoints.filter((e) => e.enabled).map((e) => e.id))
-            }
+            onClick={() => openComposer(enabledEndpoints.map((e) => e.id))}
           >
-            <PlusCircle className="h-3.5 w-3.5" />
+            <Plus className="h-3.5 w-3.5" />
             新建
           </Button>
         </div>
@@ -163,7 +160,7 @@ export function TaskRunnerView() {
                           type="button"
                           onClick={() => void pauseTask(t.id)}
                           className="rounded p-1 text-amber-400 hover:bg-amber-500/15"
-                          title="暂停任务"
+                          title="暂停"
                         >
                           <Pause className="h-3 w-3 fill-current" />
                         </button>
@@ -173,7 +170,7 @@ export function TaskRunnerView() {
                           type="button"
                           onClick={() => void resumeTask(t.id)}
                           className="rounded p-1 text-emerald-400 hover:bg-emerald-500/15"
-                          title="恢复任务"
+                          title="继续"
                         >
                           <Play className="h-3 w-3 fill-current" />
                         </button>
@@ -183,7 +180,7 @@ export function TaskRunnerView() {
                           type="button"
                           onClick={() => void deleteTask(t.id)}
                           className="rounded p-1 text-muted-foreground opacity-0 transition hover:bg-destructive/15 hover:text-destructive group-hover:opacity-100"
-                          title="删除记录"
+                          title="删除"
                         >
                           <Trash2 className="h-3 w-3" />
                         </button>
@@ -225,7 +222,7 @@ export function TaskRunnerView() {
         </ScrollArea>
       </div>
 
-      {/* Right Live Telemetry & Detail Panel */}
+      {/* Right Detail Panel */}
       <ScrollArea className="flex-1">
         <div className="p-5">
           {selectedTask && <TaskDetailPanel task={selectedTask} />}

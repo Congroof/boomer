@@ -881,25 +881,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "fluxpulse"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "parking_lot",
- "rand 0.8.8",
- "regex",
- "reqwest 0.12.28",
- "serde",
- "serde_json",
- "tauri",
- "tauri-build",
- "thiserror 2.0.21",
- "tokio",
- "url",
- "uuid",
-]
-
-[[package]]
 name = "fnv"
 version = "1.0.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2609,6 +2590,25 @@ checksum = "6f42ea446cab60335f76979ec15e12619a2165b5ae2c12166bef27d283a9fadf"
 dependencies = [
  "idna",
  "psl-types",
+]
+
+[[package]]
+name = "pulse"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "parking_lot",
+ "rand 0.8.8",
+ "regex",
+ "reqwest 0.12.28",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-build",
+ "thiserror 2.0.21",
+ "tokio",
+ "url",
+ "uuid",
 ]
 
 [[package]]

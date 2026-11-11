@@ -74,6 +74,16 @@ impl LocalStore {
         }
 
         let mut list: Vec<EndpointConfig> = self.read_json_or(&path, Vec::new())?;
+        if !list.is_empty()
+            && list
+                .iter()
+                .all(|ep| ep.group == "内置示例 (本地高速回显)")
+        {
+            let refreshed = build_demo_endpoints(mock_port);
+            self.write_json_atomic(&path, &refreshed)?;
+            return Ok(refreshed);
+        }
+
         // Keep built-in `127.0.0.1:<ephemeral>/mock/...` URLs synced with current session's mock_port
         let re = Regex::new(r"^http://127\.0\.0\.1:\d+/mock/").unwrap();
         let mut updated = false;
@@ -150,64 +160,48 @@ pub fn build_demo_endpoints(mock_port: u16) -> Vec<EndpointConfig> {
     vec![
         EndpointConfig {
             id: Uuid::new_v4().to_string(),
-            name: "用户信息查询 (GET 参数模板示例)".to_string(),
-            group: "内置示例 (本地高速回显)".to_string(),
-            tags: vec!["GET".to_string(), "示例".to_string()],
+            name: "查询用户资料".to_string(),
+            group: "示例分组".to_string(),
+            tags: vec!["GET".to_string()],
             enabled: true,
-            description: "演示 URL Query 中注入自定义参数 {{phone}} 与内置请求序号 {{$seq}}".to_string(),
+            description: String::new(),
             method: HttpMethod::GET,
             url: format!("http://127.0.0.1:{}/mock/user/profile", mock_port),
             query_params: vec![
                 KeyValueItem {
                     id: Uuid::new_v4().to_string(),
-                    key: "phone".to_string(),
-                    value: "{{phone}}".to_string(),
+                    key: "userId".to_string(),
+                    value: "{{userId}}".to_string(),
                     enabled: true,
-                    description: "用户手机号".to_string(),
+                    description: String::new(),
                 },
                 KeyValueItem {
                     id: Uuid::new_v4().to_string(),
-                    key: "channel".to_string(),
-                    value: "{{channel}}".to_string(),
-                    enabled: true,
-                    description: "渠道标识".to_string(),
-                },
-                KeyValueItem {
-                    id: Uuid::new_v4().to_string(),
-                    key: "reqSeq".to_string(),
+                    key: "seq".to_string(),
                     value: "{{$seq}}".to_string(),
                     enabled: true,
-                    description: "递增序号".to_string(),
+                    description: String::new(),
                 },
             ],
             headers: vec![KeyValueItem {
                 id: Uuid::new_v4().to_string(),
-                key: "X-Trace-Id".to_string(),
+                key: "X-Request-Id".to_string(),
                 value: "{{$uuid}}".to_string(),
                 enabled: true,
-                description: "分布式追踪 ID".to_string(),
+                description: String::new(),
             }],
             body: RequestBodyConfig::default(),
-            variables: vec![
-                VariableDefinition {
-                    key: "phone".to_string(),
-                    label: "手机号".to_string(),
-                    default_value: "13800138000".to_string(),
-                    required: true,
-                    description: "待测试的目标手机号".to_string(),
-                },
-                VariableDefinition {
-                    key: "channel".to_string(),
-                    label: "业务渠道".to_string(),
-                    default_value: "desktop-pc".to_string(),
-                    required: false,
-                    description: "调用来源渠道".to_string(),
-                },
-            ],
+            variables: vec![VariableDefinition {
+                key: "userId".to_string(),
+                label: "用户 ID".to_string(),
+                default_value: "1001".to_string(),
+                required: true,
+                description: String::new(),
+            }],
             assertions: AssertionConfig {
                 status_codes: "200".to_string(),
-                body_contains: "".to_string(),
-                body_not_contains: "".to_string(),
+                body_contains: String::new(),
+                body_not_contains: String::new(),
                 json_assertions: vec![JsonFieldAssertion {
                     path: "code".to_string(),
                     expected: "0".to_string(),
@@ -222,38 +216,38 @@ pub fn build_demo_endpoints(mock_port: u16) -> Vec<EndpointConfig> {
         },
         EndpointConfig {
             id: Uuid::new_v4().to_string(),
-            name: "消息提交通道 (POST JSON 模板示例)".to_string(),
-            group: "内置示例 (本地高速回显)".to_string(),
-            tags: vec!["POST".to_string(), "JSON".to_string()],
+            name: "创建业务订单".to_string(),
+            group: "示例分组".to_string(),
+            tags: vec!["POST".to_string()],
             enabled: true,
-            description: "演示 POST JSON 请求体参数注入与 65ms 模拟网络延迟（适合体验暂停/恢复）".to_string(),
+            description: String::new(),
             method: HttpMethod::POST,
             url: format!("http://127.0.0.1:{}/mock/delay?delay_ms=45", mock_port),
             query_params: vec![],
             headers: vec![KeyValueItem {
                 id: Uuid::new_v4().to_string(),
-                key: "X-Request-Timestamp".to_string(),
+                key: "X-Timestamp".to_string(),
                 value: "{{$timestamp_ms}}".to_string(),
                 enabled: true,
-                description: "毫秒级时间戳".to_string(),
+                description: String::new(),
             }],
             body: RequestBodyConfig {
                 body_type: BodyType::Json,
-                raw_content: "{\n  \"phone\": \"{{phone}}\",\n  \"scene\": \"login_verify\",\n  \"nonce\": \"{{$random_str:10}}\",\n  \"timestamp\": {{$timestamp}}\n}".to_string(),
+                raw_content: "{\n  \"userId\": \"{{userId}}\",\n  \"itemCode\": \"PRO-01\",\n  \"nonce\": \"{{$random_str:8}}\",\n  \"timestamp\": {{$timestamp}}\n}".to_string(),
                 raw_content_type: "application/json".to_string(),
                 form_items: vec![],
             },
             variables: vec![VariableDefinition {
-                key: "phone".to_string(),
-                label: "手机号".to_string(),
-                default_value: "13800138000".to_string(),
+                key: "userId".to_string(),
+                label: "用户 ID".to_string(),
+                default_value: "1001".to_string(),
                 required: true,
-                description: "接收业务测试的手机号参数".to_string(),
+                description: String::new(),
             }],
             assertions: AssertionConfig {
                 status_codes: "200-299".to_string(),
                 body_contains: "\"success\":true".to_string(),
-                body_not_contains: "".to_string(),
+                body_not_contains: String::new(),
                 json_assertions: vec![JsonFieldAssertion {
                     path: "code".to_string(),
                     expected: "0".to_string(),
@@ -268,11 +262,11 @@ pub fn build_demo_endpoints(mock_port: u16) -> Vec<EndpointConfig> {
         },
         EndpointConfig {
             id: Uuid::new_v4().to_string(),
-            name: "偶发限流网关模拟 (Form 表单 + 波动成功率)".to_string(),
-            group: "内置示例 (本地高速回显)".to_string(),
-            tags: vec!["Form".to_string(), "异常统计演示".to_string()],
+            name: "提交状态事件".to_string(),
+            group: "示例分组".to_string(),
+            tags: vec!["Form".to_string()],
             enabled: true,
-            description: "模拟约 15% 概率返回 HTTP 503，直观展示成功/失败统计、状态码分布与错误原因分析".to_string(),
+            description: String::new(),
             method: HttpMethod::POST,
             url: format!(
                 "http://127.0.0.1:{}/mock/flaky?delay_ms=30&fail_rate=15",
@@ -287,31 +281,31 @@ pub fn build_demo_endpoints(mock_port: u16) -> Vec<EndpointConfig> {
                 form_items: vec![
                     KeyValueItem {
                         id: Uuid::new_v4().to_string(),
-                        key: "phone".to_string(),
-                        value: "{{phone}}".to_string(),
+                        key: "userId".to_string(),
+                        value: "{{userId}}".to_string(),
                         enabled: true,
-                        description: "手机号".to_string(),
+                        description: String::new(),
                     },
                     KeyValueItem {
                         id: Uuid::new_v4().to_string(),
                         key: "ticket".to_string(),
-                        value: "{{$random_int:100000:999999}}".to_string(),
+                        value: "{{$random_int:1000:9999}}".to_string(),
                         enabled: true,
-                        description: "随机 6 位凭证".to_string(),
+                        description: String::new(),
                     },
                 ],
             },
             variables: vec![VariableDefinition {
-                key: "phone".to_string(),
-                label: "手机号".to_string(),
-                default_value: "13800138000".to_string(),
+                key: "userId".to_string(),
+                label: "用户 ID".to_string(),
+                default_value: "1001".to_string(),
                 required: true,
-                description: "手机号参数".to_string(),
+                description: String::new(),
             }],
             assertions: AssertionConfig {
                 status_codes: "200".to_string(),
-                body_contains: "".to_string(),
-                body_not_contains: "".to_string(),
+                body_contains: String::new(),
+                body_not_contains: String::new(),
                 json_assertions: vec![JsonFieldAssertion {
                     path: "code".to_string(),
                     expected: "0".to_string(),
