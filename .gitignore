@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Frontend Build
+dist/
+dist-ssr/
+*.local
+*.tsbuildinfo
+
+# Rust / Tauri Build
+src-tauri/target/
+src-tauri/gen/schemas/
+
+# OS & Editor
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+*.log
