@@ -111,7 +111,7 @@ export function SettingsView() {
                 onChange={(e) =>
                   setForm({ ...form, globalProxyUrl: e.target.value })
                 }
-                placeholder="如 http://127.0.0.1:7890（留空直连）"
+                placeholder="http://127.0.0.1:7890"
                 className="h-8 font-mono text-xs"
               />
             </div>

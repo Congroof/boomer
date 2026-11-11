@@ -31,6 +31,21 @@ pub fn run() {
             // Seed or sync built-in demo endpoints on startup
             let _ = store.load_or_seed_endpoints(mock_port);
 
+            if let Some(win) = app.get_webview_window("main") {
+                #[cfg(target_os = "windows")]
+                {
+                    let _ = win.set_decorations(false);
+                }
+                if let Ok(settings) = store.load_settings() {
+                    let theme = match settings.theme.as_str() {
+                        "dark" => Some(tauri::Theme::Dark),
+                        "light" => Some(tauri::Theme::Light),
+                        _ => None,
+                    };
+                    let _ = win.set_theme(theme);
+                }
+            }
+
             let manager = Arc::new(TaskManager::new(store.clone(), mock_port));
 
             app.manage(AppState { store, manager });

@@ -1,6 +1,7 @@
 import { create } from "zustand";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import type { AppSettings, RuntimeInfo } from "@/types/settings";
-import { tauriApi } from "@/services/tauriClient";
+import { isTauriRuntime, tauriApi } from "@/services/tauriClient";
 
 export type ActiveNavTab = "runner" | "endpoints" | "history" | "settings";
 
@@ -22,6 +23,12 @@ function applyThemeToDocument(theme: AppSettings["theme"]) {
     window.matchMedia("(prefers-color-scheme: dark)").matches;
   const isDark = theme === "dark" || (theme === "system" && prefersDark);
   root.classList.toggle("dark", isDark);
+
+  if (isTauriRuntime()) {
+    const nativeTheme =
+      theme === "dark" ? "dark" : theme === "light" ? "light" : null;
+    void getCurrentWindow().setTheme(nativeTheme).catch(() => {});
+  }
 }
 
 export const useAppStore = create<AppStoreState>((set, get) => ({
