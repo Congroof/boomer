@@ -1,15 +1,32 @@
-import { Activity, Database, History, Plus, Settings } from "lucide-react";
+import {
+  Activity,
+  Database,
+  History,
+  Moon,
+  Plus,
+  Settings,
+  Sun,
+  Zap,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
+import { isTauriRuntime } from "@/services/tauriClient";
 import { useAppStore, type ActiveNavTab } from "@/stores/useAppStore";
 import { useEndpointStore } from "@/stores/useEndpointStore";
 import { useTaskStore } from "@/stores/useTaskStore";
 import { Button } from "@/components/ui/button";
 
 export function AppSidebar() {
-  const { activeTab, setActiveTab, runtimeInfo } = useAppStore();
+  const { activeTab, setActiveTab, settings, toggleTheme, runtimeInfo } =
+    useAppStore();
   const endpoints = useEndpointStore((s) => s.endpoints);
   const tasks = useTaskStore((s) => s.tasks);
   const openComposer = useTaskStore((s) => s.openComposer);
+
+  const isMac =
+    isTauriRuntime() &&
+    (runtimeInfo?.os === "macos" ||
+      (typeof navigator !== "undefined" &&
+        /Mac/i.test(navigator.platform || navigator.userAgent)));
 
   const runningCount = tasks.filter(
     (t) => t.status === "running" || t.status === "paused",
@@ -54,9 +71,26 @@ export function AppSidebar() {
   };
 
   return (
-    <aside className="flex h-full w-52 shrink-0 flex-col border-r border-border bg-card/75 backdrop-blur-md">
+    <aside className="flex h-full w-52 shrink-0 select-none flex-col border-r border-border bg-card/75 backdrop-blur-md">
+      {/* Dedicated macOS Traffic Lights Drag Space */}
+      {isMac && <div data-tauri-drag-region className="h-9 w-full shrink-0" />}
+
+      {/* Brand Header */}
+      <div
+        data-tauri-drag-region="deep"
+        className={cn(
+          "flex items-center gap-2.5 px-4",
+          isMac ? "pt-1 pb-2.5" : "border-b border-border/60 py-3.5",
+        )}
+      >
+        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-sky-500 via-indigo-500 to-cyan-400 text-white shadow-sm shadow-indigo-500/20">
+          <Zap className="h-3.5 w-3.5 fill-current" />
+        </div>
+        <span className="truncate text-sm font-bold tracking-tight">Pulse</span>
+      </div>
+
       {/* Primary CTA */}
-      <div className="px-3 pt-3 pb-1.5">
+      <div className="px-3 pt-1.5 pb-1.5">
         <Button
           onClick={handleQuickCreateTask}
           className="w-full justify-center gap-1.5 shadow-sm"
@@ -113,10 +147,23 @@ export function AppSidebar() {
       </nav>
 
       {/* Bottom Footer */}
-      <div className="border-t border-border/60 px-3.5 py-2.5">
+      <div className="flex items-center justify-between border-t border-border/60 px-3.5 py-2.5">
         <span className="font-mono text-[11px] text-muted-foreground/80">
           v{runtimeInfo?.appVersion ?? "0.1.0"}
         </span>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-7 w-7 text-muted-foreground hover:text-foreground"
+          onClick={() => void toggleTheme()}
+          title="切换主题"
+        >
+          {settings.theme === "dark" ? (
+            <Sun className="h-3.5 w-3.5" />
+          ) : (
+            <Moon className="h-3.5 w-3.5" />
+          )}
+        </Button>
       </div>
     </aside>
   );

@@ -32,10 +32,6 @@ pub fn run() {
             let _ = store.load_or_seed_endpoints(mock_port);
 
             if let Some(win) = app.get_webview_window("main") {
-                #[cfg(target_os = "windows")]
-                {
-                    let _ = win.set_decorations(false);
-                }
                 if let Ok(settings) = store.load_settings() {
                     let theme = match settings.theme.as_str() {
                         "dark" => Some(tauri::Theme::Dark),
